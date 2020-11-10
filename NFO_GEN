@@ -3,7 +3,7 @@
 # This script depends on your media files having the correct media tags. Such as Title Artist Album.
 # Puddletag is my preferred batch tagging tool for mp3 mp4 files
 
-#File extension type mp3 mp4 mkv
+#File extension type mp3 mp4 ...etc
 EXT=mp4
 
 # Colors

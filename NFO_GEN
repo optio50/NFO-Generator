@@ -1,5 +1,6 @@
 #!/bin/bash
 # NFO Generator for music video files in Kodi
+# This script only generates NFO files for the current directoy at a single level.
 # This script depends on your media files having the correct media tags. Such as Title Artist Album.
 # Puddletag is my preferred batch tagging tool for mp3 mp4 files
 

@@ -2,93 +2,151 @@
 # NFO Generator for music video files in Kodi
 # This script only generates NFO files for the current directoy at a single level.
 # This script depends on your media files having the correct media tags. Such as Title Artist Album.
-# Puddletag is my preferred batch tagging tool for mp3 mp4 files
 
-#File extension type mp3 mp4 ...etc
-EXT=mp4
-
-# Colors
+# Text Colors
+BoRed=$(tput bold; tput setaf 1) # Bold Red
+Bogreen=$(tput bold; tput setaf 28) # Bold Green
+green=$(tput setaf 28)
 red=$(tput setaf 1)
-reset=$(tput sgr0)
+white=$(tput setaf 15)
+blue=$(tput setaf 21)happy@#ultra@#scuba@#strob
+reset=$(tput sgr0) #  Reset text attributes to normal
 
-# Requirements Check
 
-REQUIRES="mediainfo xmlstarlet"
+REQUIRES="xmlstarlet mediainfo"
 
-# Check that required tools are installed
+# Check required tools are installed
 for tool in ${REQUIRES}; do
     if ! [ -x "$(command -v ${tool})" ]; then
-        printf "%b\n" ${red}  "Error: ${tool} is not installed or not in your path. ${tool} is required.${reset}\n" >&2
+        printf "%b\n" ${BoRed}  "Error: ${tool} is not installed or not in your path. ${tool} is required.${reset}\n" >&2
         exit 1
     fi
 done
 
-function NFO_GEN(){
+
+NFO_GEN(){
 Counter=0
-Total=$(ls -l *."${EXT}" | wc -l)
-for i in *."${EXT}"
+# Add your desired file extension to the Total variable
+Total=$(ls -l *.avi *.mp4 *.mkv *.webm *.flv *.mov *.wmv *.m4v 2> /dev/null | wc -l)
+shopt -s nullglob nocaseglob extglob
+# Add your desired file extension to the i variable
+for i in *.avi *.mp4 *.mkv *.webm *.flv *.mov *.wmv *.m4v
 do
-((Counter="${Counter}"+1))
-    mapfile -t -O 1 < <(mediainfo '--Output=General;%Title%,%Track/Position%,%Album%,%Artist%' "${i}" | awk -F'[,]' '{print $1;print $2;print $3;print $4}') values;
-	New_Name=$(basename -s "${EXT}" "${i}");
-	printf "%b" "File ${Counter} of ${Total} ${New_Name}nfo\n"
-	xmlstarlet ed -u "/musicvideo/title" -v "${values[1]}" nfo-Template.nfo > "${New_Name}"nfo;
-	xmlstarlet ed --inplace -u "/musicvideo/track" -v "${values[2]}" -u "/musicvideo/album" -v "${values[3]}" -u "/musicvideo/artist" -v "${values[4]}" "${New_Name}"nfo;
-	
-done
+
+if [ -f "${i}" ]; then
+    ((Counter="${Counter}"+1))
+	ext=$(printf "%b\n" "${i}"| awk -F . '{print $NF}' 2> /dev/null)
+    mapfile -t -O 1 < <(mediainfo '--Output=General;%Title%,%Track/Position%,%Album%,%Artist%' "${i}" | awk -F'[,]' '{print $1;print $2;print $3;print $4}') values
+	New_Name=$(basename -s "${ext}" "${i}")
+	printf "%b" ${red} "File ${Counter} of ${Total} ${white} ----> ${blue}  ${New_Name}nfo ${reset}\n"
+	xmlstarlet ed -u "/musicvideo/title" -v "${values[1]}" nfo-Template.nfo > "${New_Name}"nfo
+	xmlstarlet ed --inplace -u "/musicvideo/track" -v "${values[2]}" -u "/musicvideo/album" -v "${values[3]}" -u "/musicvideo/artist" -v "${values[4]}" "${New_Name}"nfo
+fi	
+done  
+printf "%b" ${reset}
+if [ -f nfo-Template.nfo ]; then
 rm nfo-Template.nfo
+fi
 }
 
-# Create the NFO Template file
+Template(){
 cat << EOF > nfo-Template.nfo
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 
 <musicvideo>
+
     <title></title>
-    <artist></artist>
-    <track></track>
+    
     <album></album>
+    
+    <track></track>
+    
+    <artist></artist>
+
     <userrating></userrating>
+
     <top250></top250>
+
     <outline></outline>
+
     <plot></plot>
+
     <tagline></tagline>
+
     <runtime></runtime>
+
     <mpaa></mpaa>
+
     <playcount></playcount>
+
     <lastplayed></lastplayed>
+
     <id></id>
+
     <genre></genre>
+
     <director></director>
+
     <premiered></premiered>
+
     <year></year>
+
     <status></status>
+
     <code></code>
+
     <aired></aired>
+
     <studio></studio>
+
     <trailer></trailer>
-    <dateadded></dateadded>
+
     <fileinfo>
+
         <streamdetails>
+
             <video>
+
                 <codec></codec>
+
                 <aspect></aspect>
+
                 <width></width>
+
                 <height></height>
+
                 <durationinseconds></durationinseconds>
+
                 <stereomode></stereomode>
+
             </video>
+
             <audio>
+
                 <codec></codec>
+
                 <language></language>
+
                 <channels></channels>
+
             </audio>
+
         </streamdetails>
+
     </fileinfo>
+
     <resume>
+
         <position></position>
+
         <total></total>
+
     </resume>
+
+    <dateadded></dateadded>
+
 </musicvideo>
 EOF
+}
+Template
 NFO_GEN
